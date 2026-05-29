@@ -14,7 +14,8 @@ use crate::proxy::service::{OpenSessionResult, ServiceProxy, ServiceProxyBlockin
 use crate::ss::{ALGORITHM_DH, ALGORITHM_PLAIN};
 use crate::Error;
 
-use generic_array::{typenum::U16, GenericArray};
+use hybrid_array::typenum::U16;
+use hybrid_array::Array;
 use num::{
     bigint::BigUint,
     integer::Integer,
@@ -49,7 +50,7 @@ macro_rules! feature_needed {
     }
 }
 
-type AesKey = GenericArray<u8, U16>;
+type AesKey = Array<u8, U16>;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum EncryptionType {
@@ -94,7 +95,7 @@ impl Keypair {
         let mut okm = [0; 16];
         hkdf(ikm, salt, &mut okm);
 
-        GenericArray::clone_from_slice(&okm)
+        Array::from(okm)
     }
 }
 
@@ -232,25 +233,26 @@ fn powm(base: &BigUint, exp: &BigUint, modulus: &BigUint) -> BigUint {
 #[cfg(feature = "crypto-rust")]
 pub fn encrypt(data: &[u8], key: &AesKey, iv: &[u8]) -> Vec<u8> {
     use aes::cipher::block_padding::Pkcs7;
-    use aes::cipher::{BlockEncryptMut, KeyIvInit};
+    use aes::cipher::{Array, BlockModeEncrypt, KeyIvInit};
 
     type Aes128CbcEnc = cbc::Encryptor<aes::Aes128>;
 
-    let iv = GenericArray::from_slice(iv);
+    // TODO: Remove unwrap, make ref?
+    let iv = Array::try_from(iv).unwrap();
 
-    Aes128CbcEnc::new(key, iv).encrypt_padded_vec_mut::<Pkcs7>(data)
+    Aes128CbcEnc::new(key, &iv).encrypt_padded_vec::<Pkcs7>(data)
 }
 
 #[cfg(feature = "crypto-rust")]
 pub fn decrypt(encrypted_data: &[u8], key: &AesKey, iv: &[u8]) -> Result<Vec<u8>, Error> {
     use aes::cipher::block_padding::Pkcs7;
-    use aes::cipher::{BlockDecryptMut, KeyIvInit};
+    use aes::cipher::{BlockModeDecrypt, KeyIvInit};
 
     type Aes128CbcDec = cbc::Decryptor<aes::Aes128>;
 
-    let iv = GenericArray::from_slice(iv);
-    Aes128CbcDec::new(key, iv)
-        .decrypt_padded_vec_mut::<Pkcs7>(encrypted_data)
+    let iv = Array::try_from(iv).unwrap();
+    Aes128CbcDec::new(key, &iv)
+        .decrypt_padded_vec::<Pkcs7>(encrypted_data)
         .map_err(|_| Error::Crypto("message decryption failed"))
 }
 
