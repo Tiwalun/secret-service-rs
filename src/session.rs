@@ -66,7 +66,7 @@ struct Keypair {
 impl Keypair {
     fn generate() -> Self {
         let mut private_key_bytes = [0; 128];
-        getrandom::getrandom(&mut private_key_bytes).expect("platform RNG failed");
+        getrandom::fill(&mut private_key_bytes).expect("platform RNG failed");
 
         let private_key = BigUint::from_bytes_be(&private_key_bytes);
         let public_key = powm(&DH_GENERATOR, &private_key, &DH_PRIME);

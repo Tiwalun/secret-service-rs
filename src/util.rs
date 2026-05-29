@@ -70,7 +70,7 @@ pub(crate) fn format_secret(
 
     if let Some(session_key) = session.get_aes_key() {
         let mut aes_iv = [0; 16];
-        getrandom::getrandom(&mut aes_iv).expect("platform RNG failed");
+        getrandom::fill(&mut aes_iv).expect("platform RNG failed");
 
         let encrypted_secret = encrypt(secret, session_key, &aes_iv);
 
