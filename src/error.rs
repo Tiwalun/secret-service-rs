@@ -19,6 +19,9 @@ pub enum Error {
     NoResult,
     /// An authorization prompt was dismissed, but is required to continue.
     Prompt,
+    /// The connection to the secret service provider was closed while waiting
+    /// for an authorization prompt to complete, so its outcome is unknown.
+    PromptDisconnected,
     /// A secret service provider, or a session to connect to one, was found
     /// on the system.
     Unavailable,
@@ -34,6 +37,9 @@ impl std::fmt::Display for Error {
             Error::Locked => f.write_str("SS Error: object locked"),
             Error::NoResult => f.write_str("SS error: result not returned from SS API"),
             Error::Prompt => f.write_str("SS error: prompt dismissed"),
+            Error::PromptDisconnected => {
+                f.write_str("SS error: connection closed before prompt completed")
+            }
             Error::Unavailable => f.write_str("no secret service provider or dbus session found"),
         }
     }
