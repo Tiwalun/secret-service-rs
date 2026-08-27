@@ -2,7 +2,7 @@
 
 [![crates.io version](https://img.shields.io/crates/v/secret-service.svg)](https://crates.io/crates/secret-service)
 [![crate documentation](https://docs.rs/secret-service/badge.svg)](https://docs.rs/secret-service)
-![MSRV](https://img.shields.io/badge/rustc-1.77+-blue.svg)
+![MSRV](https://img.shields.io/badge/rustc-1.87+-blue.svg)
 [![crates.io downloads](https://img.shields.io/crates/d/secret-service.svg)](https://crates.io/crates/secret-service)
 ![CI](https://github.com/hwchen/secret-service-rs/workflows/CI/badge.svg)
 
