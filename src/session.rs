@@ -51,6 +51,8 @@ macro_rules! feature_needed {
 }
 
 type AesKey = Array<u8, U16>;
+/// AES-CBC initialization vector
+pub type AesIv = [u8; 16];
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum EncryptionType {
@@ -231,27 +233,23 @@ fn powm(base: &BigUint, exp: &BigUint, modulus: &BigUint) -> BigUint {
 }
 
 #[cfg(feature = "crypto-rust")]
-pub fn encrypt(data: &[u8], key: &AesKey, iv: &[u8]) -> Vec<u8> {
+pub fn encrypt(data: &[u8], key: &AesKey, iv: &AesIv) -> Vec<u8> {
     use aes::cipher::block_padding::Pkcs7;
-    use aes::cipher::{Array, BlockModeEncrypt, KeyIvInit};
+    use aes::cipher::{BlockModeEncrypt, KeyIvInit};
 
     type Aes128CbcEnc = cbc::Encryptor<aes::Aes128>;
 
-    // TODO: Remove unwrap, make ref?
-    let iv = Array::try_from(iv).unwrap();
-
-    Aes128CbcEnc::new(key, &iv).encrypt_padded_vec::<Pkcs7>(data)
+    Aes128CbcEnc::new(key, &Array::from(*iv)).encrypt_padded_vec::<Pkcs7>(data)
 }
 
 #[cfg(feature = "crypto-rust")]
-pub fn decrypt(encrypted_data: &[u8], key: &AesKey, iv: &[u8]) -> Result<Vec<u8>, Error> {
+pub fn decrypt(encrypted_data: &[u8], key: &AesKey, iv: &AesIv) -> Result<Vec<u8>, Error> {
     use aes::cipher::block_padding::Pkcs7;
     use aes::cipher::{BlockModeDecrypt, KeyIvInit};
 
     type Aes128CbcDec = cbc::Decryptor<aes::Aes128>;
 
-    let iv = Array::try_from(iv).unwrap();
-    Aes128CbcDec::new(key, &iv)
+    Aes128CbcDec::new(key, &Array::from(*iv))
         .decrypt_padded_vec::<Pkcs7>(encrypted_data)
         .map_err(|_| Error::Crypto("message decryption failed"))
 }
@@ -291,12 +289,12 @@ pub fn decrypt(encrypted_data: &[u8], key: &AesKey, iv: &[u8]) -> Result<Vec<u8>
 }
 
 #[cfg(all(not(feature = "crypto-rust"), not(feature = "crypto-openssl")))]
-pub fn encrypt(data: &[u8], key: &AesKey, iv: &[u8]) -> Vec<u8> {
+pub fn encrypt(data: &[u8], key: &AesKey, iv: &AesIv) -> Vec<u8> {
     feature_needed!()
 }
 
 #[cfg(all(not(feature = "crypto-rust"), not(feature = "crypto-openssl")))]
-pub fn decrypt(encrypted_data: &[u8], key: &AesKey, iv: &[u8]) -> Result<Vec<u8>, Error> {
+pub fn decrypt(encrypted_data: &[u8], key: &AesKey, iv: &AesIv) -> Result<Vec<u8>, Error> {
     feature_needed!()
 }
 

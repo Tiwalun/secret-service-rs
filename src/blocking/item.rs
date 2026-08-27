@@ -2,7 +2,7 @@ use crate::error::Error;
 use crate::proxy::item::ItemProxyBlocking;
 use crate::proxy::service::ServiceProxyBlocking;
 use crate::session::decrypt;
-use crate::session::Session;
+use crate::session::{AesIv, Session};
 use crate::ss::SS_DBUS_NAME;
 use crate::util::{exec_prompt_blocking, format_secret, lock_or_unlock_blocking, LockAction};
 
@@ -104,7 +104,10 @@ impl<'a> Item<'a> {
 
         if let Some(session_key) = self.session.get_aes_key() {
             // get "param" (aes_iv) field out of secret struct
-            let aes_iv = secret_struct.parameters;
+            let aes_iv: AesIv = secret_struct
+                .parameters
+                .try_into()
+                .map_err(|_| Error::Crypto("secret has an invalid initialization vector"))?;
 
             // decrypt
             let decrypted_secret = decrypt(&secret, session_key, &aes_iv)?;
