@@ -13,27 +13,34 @@ A rust library for interacting with the FreeDesktop Secret Service API through D
 `secret-service` is implemented in pure Rust by default, so it doesn't require any system libraries
 such as `libdbus-1-dev` or `libdbus-1-3` on Ubuntu.
 
-In Cargo.toml:
+**In Cargo.toml:**
 
-When adding the crate, you must select a feature representing your selected runtime and cryptography backend. 
-For example:
+When adding the crate, you must select a feature representing your selected cryptography backend (either `crypto-rust` or `crypto-openssl`). For example:
 
 ```toml
 [dependencies]
-secret-service = { version = "5.0.0", features = ["rt-tokio-crypto-rust"] }
+secret-service = { version = "5", features = ["crypto-rust"] }
 ```
 
-Available feature flags:
-- `rt-async-io-crypto-rust`: Uses the `async-std` runtime and pure Rust crytography via `RustCrypto`.
-- `rt-async-io-crypto-openssl`: Uses the `async-std` runtime and OpenSSL as the cryptography provider.
-- `rt-tokio-crypto-rust`: Uses the `tokio` runtime and pure Rust cryptography via `RustCrypto`.
-- `rt-tokio-crypto-openssl`: Uses the `tokio` runtime and OpenSSL as the cryptography provider.
+If your cargo dependency tree does not already specify the asynchronous runtime to be used by the `zbus` crate, you must select a feature corresponding to your selected runtime (either `rt-tokio` or `rt-async-io`). For example:
 
-Note that the `-openssl` feature sets require OpenSSL to be available on your system, or the `bundled` feature
-of `openssl` crate must be activated in your `cargo` dependency tree instead.
+```toml
+[dependencies]
+secret-service = { version = "5", features = ["crypto-rust", "rt-tokio"]}
+```
 
-In source code (below example is for `--bin`, not `--lib`). This example uses `tokio` as
-the async runtime.
+For convenience, the following four combined feature flags are available that select both runtime and cryptography:
+
+- `rt-async-io-crypto-rust`: Async I/O runtime with pure rust cryptography.
+- `rt-async-io-crypto-openssl`: Async I/O runtime with OpenSSL cryptography.
+- `rt-tokio-crypto-rust`: Tokio runtime and pure Rust cryptography.
+- `rt-tokio-crypto-openssl`: Tokio runtime and OpenSSL cryptography.
+
+Note that using OpenSSL cryptography requires the OpenSSL development libraries be installed on your build system. If they are not, you can activate the `bundled` feature of the `openssl` crate in your cargo dependencies to statically link OpenSSL cryptography into your application.
+
+**In source code:** 
+
+This example is an application built with the Tokio runtime.
 
 ```rust
 use secret_service::SecretService;
@@ -81,10 +88,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 - Items: create, delete, search, get-by-path, get/set secret.
 
 ### Changelog
-See [the list of GitHub releases and their release notes](https://github.com/hwchen/secret-service-rs/releases)
+See [the list of GitHub releases and their release notes](https://github.com/hwchen/secret-service-rs/releases).
 
 ### Versioning
-This library is feature complete, has stabilized its API for the most part. However, as this
+This library is feature complete and has stabilized its API for the most part. However, as this
 crate is almost soley reliable on the `zbus` crate, we try and match major version releases
 with theirs to handle breaking changes and move with the wider `zbus` ecosystem.
 
