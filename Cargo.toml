@@ -16,11 +16,14 @@ rust-version = "1.87.0"
 crypto-rust = ["dep:aes", "dep:cbc", "dep:sha2", "dep:hkdf"]
 crypto-openssl = ["dep:openssl"]
 
-rt-async-io-crypto-rust = ["zbus/async-io", "crypto-rust"]
-rt-async-io-crypto-openssl = ["zbus/async-io", "crypto-openssl"]
+rt-async-io = ["zbus/async-io"]
+rt-tokio = ["zbus/tokio"]
 
-rt-tokio-crypto-rust = ["zbus/tokio", "crypto-rust"]
-rt-tokio-crypto-openssl = ["zbus/tokio", "crypto-openssl"]
+rt-async-io-crypto-rust = ["rt-async-io", "crypto-rust"]
+rt-async-io-crypto-openssl = ["rt-async-io", "crypto-openssl"]
+
+rt-tokio-crypto-rust = ["rt-tokio", "crypto-rust"]
+rt-tokio-crypto-openssl = ["rt-tokio", "crypto-openssl"]
 
 [dependencies]
 aes = { version = "0.9", optional = true }

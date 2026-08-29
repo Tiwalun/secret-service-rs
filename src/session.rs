@@ -45,7 +45,7 @@ static DH_PRIME: Lazy<BigUint> = Lazy::new(|| {
 #[allow(unused_macros)]
 macro_rules! feature_needed {
     () => {
-        compile_error!("Please enable a feature to pick a runtime (such as rt-async-io-crypto-rust or rt-tokio-crypto-rust) for the secret-service crate")
+        compile_error!("Please enable a cryptography feature (crypto-rust or crypto-openssl) for the secret-service crate")
     }
 }
 
