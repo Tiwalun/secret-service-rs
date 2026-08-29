@@ -14,8 +14,7 @@ use crate::proxy::service::{OpenSessionResult, ServiceProxy, ServiceProxyBlockin
 use crate::ss::{ALGORITHM_DH, ALGORITHM_PLAIN};
 use crate::Error;
 
-use hybrid_array::typenum::U16;
-use hybrid_array::Array;
+use hybrid_array::{Array, typenum::U16};
 use num::{
     bigint::BigUint,
     integer::Integer,
