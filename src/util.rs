@@ -4,11 +4,11 @@
 //!   formatting secrets
 
 use crate::error::Error;
+use crate::proxy::SecretStruct;
 use crate::proxy::prompt::{Completed, PromptProxy, PromptProxyBlocking};
 use crate::proxy::service::{ServiceProxy, ServiceProxyBlocking};
-use crate::proxy::SecretStruct;
-use crate::session::encrypt;
 use crate::session::Session;
+use crate::session::encrypt;
 use crate::ss::SS_DBUS_NAME;
 
 use futures_util::StreamExt;

@@ -4,7 +4,7 @@ use crate::proxy::service::ServiceProxy;
 use crate::session::decrypt;
 use crate::session::{AesIv, Session};
 use crate::ss::SS_DBUS_NAME;
-use crate::util::{exec_prompt, format_secret, lock_or_unlock, LockAction};
+use crate::util::{LockAction, exec_prompt, format_secret, lock_or_unlock};
 
 use std::collections::HashMap;
 use zbus::{proxy::CacheProperties, zvariant::OwnedObjectPath};

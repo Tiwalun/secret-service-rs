@@ -10,16 +10,16 @@
 // 7. Format Secret: encode the secret value for the value field in secret struct.
 //      This encoding uses the aes_key from the associated Session.
 
+use crate::Error;
 use crate::proxy::service::{OpenSessionResult, ServiceProxy, ServiceProxyBlocking};
 use crate::ss::{ALGORITHM_DH, ALGORITHM_PLAIN};
-use crate::Error;
 
 use hybrid_array::{Array, typenum::U16};
 use num::{
+    FromPrimitive,
     bigint::BigUint,
     integer::Integer,
     traits::{One, Zero},
-    FromPrimitive,
 };
 use once_cell::sync::Lazy;
 use zbus::zvariant::OwnedObjectPath;

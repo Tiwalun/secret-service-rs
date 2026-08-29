@@ -1,10 +1,10 @@
+use crate::Error;
+use crate::Item;
 use crate::proxy::collection::CollectionProxy;
 use crate::proxy::service::ServiceProxy;
 use crate::session::Session;
 use crate::ss::{SS_DBUS_NAME, SS_ITEM_ATTRIBUTES, SS_ITEM_LABEL};
-use crate::util::{exec_prompt, format_secret, lock_or_unlock, LockAction};
-use crate::Error;
-use crate::Item;
+use crate::util::{LockAction, exec_prompt, format_secret, lock_or_unlock};
 
 use std::collections::HashMap;
 use zbus::{
