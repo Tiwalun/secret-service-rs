@@ -115,7 +115,7 @@ pub(crate) async fn exec_prompt(
     let mut receive_completed_iter = prompt_proxy.receive_completed().await?;
     prompt_proxy.prompt(NO_WINDOW_ID).await?;
 
-    handle_signal(receive_completed_iter.next().await.unwrap())
+    handle_signal(receive_completed_iter.next().await)
 }
 
 pub(crate) fn exec_prompt_blocking(
@@ -131,10 +131,15 @@ pub(crate) fn exec_prompt_blocking(
     let mut receive_completed_iter = prompt_proxy.receive_completed()?;
     prompt_proxy.prompt(NO_WINDOW_ID)?;
 
-    handle_signal(receive_completed_iter.next().unwrap())
+    handle_signal(receive_completed_iter.next())
 }
 
-fn handle_signal(signal: Completed) -> Result<zvariant::OwnedValue, Error> {
+fn handle_signal(signal: Option<Completed>) -> Result<zvariant::OwnedValue, Error> {
+    // The signal stream ends without yielding a `Completed` signal when the
+    // connection it was created from is closed, so the prompt can no longer
+    // complete and we have no way of knowing whether it was accepted.
+    let signal = signal.ok_or(Error::PromptDisconnected)?;
+
     let args = signal.args()?;
     if args.dismissed {
         Err(Error::Prompt)
