@@ -4,11 +4,11 @@
 //!   formatting secrets
 
 use crate::error::Error;
+use crate::proxy::SecretStruct;
 use crate::proxy::prompt::{Completed, PromptProxy, PromptProxyBlocking};
 use crate::proxy::service::{ServiceProxy, ServiceProxyBlocking};
-use crate::proxy::SecretStruct;
-use crate::session::encrypt;
 use crate::session::Session;
+use crate::session::encrypt;
 use crate::ss::SS_DBUS_NAME;
 
 use futures_util::StreamExt;
@@ -70,7 +70,7 @@ pub(crate) fn format_secret(
 
     if let Some(session_key) = session.get_aes_key() {
         let mut aes_iv = [0; 16];
-        getrandom::getrandom(&mut aes_iv).expect("platform RNG failed");
+        getrandom::fill(&mut aes_iv).expect("platform RNG failed");
 
         let encrypted_secret = encrypt(secret, session_key, &aes_iv);
 

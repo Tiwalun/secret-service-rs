@@ -13,8 +13,8 @@
 use crate::session::Session;
 use crate::ss::SS_COLLECTION_LABEL;
 use crate::util;
-use crate::{proxy::service::ServiceProxyBlocking, util::exec_prompt_blocking};
 use crate::{EncryptionType, Error, SearchItemsResult};
+use crate::{proxy::service::ServiceProxyBlocking, util::exec_prompt_blocking};
 use std::collections::HashMap;
 use zbus::zvariant::{ObjectPath, OwnedObjectPath, Value};
 

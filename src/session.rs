@@ -10,16 +10,16 @@
 // 7. Format Secret: encode the secret value for the value field in secret struct.
 //      This encoding uses the aes_key from the associated Session.
 
+use crate::Error;
 use crate::proxy::service::{OpenSessionResult, ServiceProxy, ServiceProxyBlocking};
 use crate::ss::{ALGORITHM_DH, ALGORITHM_PLAIN};
-use crate::Error;
 
-use generic_array::{typenum::U16, GenericArray};
+use hybrid_array::{Array, typenum::U16};
 use num::{
+    FromPrimitive,
     bigint::BigUint,
     integer::Integer,
     traits::{One, Zero},
-    FromPrimitive,
 };
 use once_cell::sync::Lazy;
 use zbus::zvariant::OwnedObjectPath;
@@ -49,7 +49,9 @@ macro_rules! feature_needed {
     }
 }
 
-type AesKey = GenericArray<u8, U16>;
+type AesKey = Array<u8, U16>;
+/// AES-CBC initialization vector
+pub type AesIv = [u8; 16];
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum EncryptionType {
@@ -65,7 +67,7 @@ struct Keypair {
 impl Keypair {
     fn generate() -> Self {
         let mut private_key_bytes = [0; 128];
-        getrandom::getrandom(&mut private_key_bytes).expect("platform RNG failed");
+        getrandom::fill(&mut private_key_bytes).expect("platform RNG failed");
 
         let private_key = BigUint::from_bytes_be(&private_key_bytes);
         let public_key = powm(&DH_GENERATOR, &private_key, &DH_PRIME);
@@ -94,7 +96,7 @@ impl Keypair {
         let mut okm = [0; 16];
         hkdf(ikm, salt, &mut okm);
 
-        GenericArray::clone_from_slice(&okm)
+        Array::from(okm)
     }
 }
 
@@ -230,27 +232,24 @@ fn powm(base: &BigUint, exp: &BigUint, modulus: &BigUint) -> BigUint {
 }
 
 #[cfg(feature = "crypto-rust")]
-pub fn encrypt(data: &[u8], key: &AesKey, iv: &[u8]) -> Vec<u8> {
+pub fn encrypt(data: &[u8], key: &AesKey, iv: &AesIv) -> Vec<u8> {
     use aes::cipher::block_padding::Pkcs7;
-    use aes::cipher::{BlockEncryptMut, KeyIvInit};
+    use aes::cipher::{BlockModeEncrypt, KeyIvInit};
 
     type Aes128CbcEnc = cbc::Encryptor<aes::Aes128>;
 
-    let iv = GenericArray::from_slice(iv);
-
-    Aes128CbcEnc::new(key, iv).encrypt_padded_vec_mut::<Pkcs7>(data)
+    Aes128CbcEnc::new(key, &Array::from(*iv)).encrypt_padded_vec::<Pkcs7>(data)
 }
 
 #[cfg(feature = "crypto-rust")]
-pub fn decrypt(encrypted_data: &[u8], key: &AesKey, iv: &[u8]) -> Result<Vec<u8>, Error> {
+pub fn decrypt(encrypted_data: &[u8], key: &AesKey, iv: &AesIv) -> Result<Vec<u8>, Error> {
     use aes::cipher::block_padding::Pkcs7;
-    use aes::cipher::{BlockDecryptMut, KeyIvInit};
+    use aes::cipher::{BlockModeDecrypt, KeyIvInit};
 
     type Aes128CbcDec = cbc::Decryptor<aes::Aes128>;
 
-    let iv = GenericArray::from_slice(iv);
-    Aes128CbcDec::new(key, iv)
-        .decrypt_padded_vec_mut::<Pkcs7>(encrypted_data)
+    Aes128CbcDec::new(key, &Array::from(*iv))
+        .decrypt_padded_vec::<Pkcs7>(encrypted_data)
         .map_err(|_| Error::Crypto("message decryption failed"))
 }
 
@@ -289,12 +288,12 @@ pub fn decrypt(encrypted_data: &[u8], key: &AesKey, iv: &[u8]) -> Result<Vec<u8>
 }
 
 #[cfg(all(not(feature = "crypto-rust"), not(feature = "crypto-openssl")))]
-pub fn encrypt(data: &[u8], key: &AesKey, iv: &[u8]) -> Vec<u8> {
+pub fn encrypt(data: &[u8], key: &AesKey, iv: &AesIv) -> Vec<u8> {
     feature_needed!()
 }
 
 #[cfg(all(not(feature = "crypto-rust"), not(feature = "crypto-openssl")))]
-pub fn decrypt(encrypted_data: &[u8], key: &AesKey, iv: &[u8]) -> Result<Vec<u8>, Error> {
+pub fn decrypt(encrypted_data: &[u8], key: &AesKey, iv: &AesIv) -> Result<Vec<u8>, Error> {
     feature_needed!()
 }
 
